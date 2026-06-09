@@ -138,6 +138,21 @@
   .btn:hover  { transform: translate(2px,2px); box-shadow: 0 0 0 3px var(--ink), 4px 4px 0 0 var(--ink); }
   .btn:active { transform: translate(6px,6px); box-shadow: 0 0 0 3px var(--ink); }
 
+  /* ---- contract address ---- */
+  .ca {
+    margin-top: 22px;
+    display: inline-flex; align-items: center; gap: 10px;
+    background: rgba(13,27,42,.55);
+    color: #d8e9f7;
+    font-size: 12.5px; font-family: ui-monospace, 'SF Mono', monospace;
+    padding: 9px 14px; border-radius: 10px;
+    cursor: pointer; user-select: all;
+    backdrop-filter: blur(4px);
+    max-width: 92vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    transition: background .12s ease;
+  }
+  .ca:hover { background: rgba(13,27,42,.72); }
+  .ca .copy { font-size: 11px; color: #9fd66a; font-weight: 600; white-space: nowrap; }
 
   /* ---- orientation badge above the logo ---- */
   .badge {
@@ -187,6 +202,14 @@
   .tray-msg { color: rgba(255,255,255,.9); font-size: 12px; }
   .clock { color: #fff; font-size: 12px; font-weight: 600; }
   @media (max-width: 640px) { .tray-msg { display: none; } }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 10px;
+    font-size: 13px; font-weight: 500; opacity: 0; pointer-events: none;
+    transition: opacity .2s ease, transform .2s ease; z-index: 10;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
@@ -211,6 +234,10 @@
         <a class="btn ghost" href="#" id="chart" target="_blank" rel="noopener">Chart</a>
       </div>
 
+      <div class="ca" id="ca" title="Click to copy">
+        <span id="ca-text">contract: launching soon</span>
+        <span class="copy">COPY</span>
+      </div>
     </main>
 
   </div>
@@ -227,15 +254,17 @@
     </div>
   </div>
 
+  <div class="toast" id="toast">copied</div>
 
 <script>
 /* =========================================================
    CONFIG — fill these in at launch
    ========================================================= */
 const CONFIG = {
+  contract: "665n2GqMBv5opFRjxsUE7bPdi6pyvfDyxRkeUctQpump",   // full mint address
   twitter:  "https://x.com/blisscoin_sol",   // your X profile
-  pumpfun:  "https://pump.fun/coin/5XdmGmfXzVCssg3KgWgAK56Y5MVTFgRZfhwFc9CUpump",   // pump.fun coin url (also used for "Buy")
-  chart:    "https://dexscreener.com/solana/5XdmGmfXzVCssg3KgWgAK56Y5MVTFgRZfhwFc9CUpump",   // chart button
+  pumpfun:  "https://pump.fun/coin/665n2GqMBv5opFRjxsUE7bPdi6pyvfDyxRkeUctQpump",   // pump.fun coin url (also used for "Buy")
+  chart:    "https://dexscreener.com/solana/665n2GqMBv5opFRjxsUE7bPdi6pyvfDyxRkeUctQpump",   // chart button
   hillImage: "bliss.jpg",             // drop the real Bliss photo here; it gets pixelated live
   pixelSize: 200,                     // lower = chunkier pixels (recognizable ~160–240)
 };
@@ -249,7 +278,18 @@ const CONFIG = {
   document.getElementById('buy-main').href  = buyUrl;
   document.getElementById('buy-start').href = buyUrl;
   document.getElementById('chart').href    = CONFIG.chart || buyUrl;
+  if (CONFIG.contract) document.getElementById('ca-text').textContent = "contract: " + CONFIG.contract;
 })();
+
+/* copy contract */
+const caEl = document.getElementById('ca');
+const toast = document.getElementById('toast');
+caEl.addEventListener('click', async () => {
+  if (!CONFIG.contract) return;
+  try { await navigator.clipboard.writeText(CONFIG.contract); } catch(e){}
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 1300);
+});
 
 /* =========================================================
    PIXEL HILL — drawn procedurally, no image assets.
